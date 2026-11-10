@@ -1,0 +1,13 @@
+{
+  "name": "tappayments-codeartifact-npm-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "npm dependency resolution test for AWS CodeArtifact",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21"
+  }
+}
+

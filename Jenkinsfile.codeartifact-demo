@@ -1,0 +1,43 @@
+pipeline {
+  agent { label 'docker-awscli' }
+
+  environment {
+    AWS_REGION = 'us-east-1'
+    CODEARTIFACT_DOMAIN = 'tappayments'
+    CODEARTIFACT_OWNER = '980136594430'
+  }
+
+  stages {
+    stage('Verify instance role') {
+      steps {
+        sh 'aws sts get-caller-identity --region "$AWS_REGION"'
+      }
+    }
+
+    stage('Build CodeArtifact tests') {
+      steps {
+        sh '''#!/usr/bin/env bash
+          set -euo pipefail
+          set +x
+
+          token="$(aws codeartifact get-authorization-token --domain "$CODEARTIFACT_DOMAIN" --domain-owner "$CODEARTIFACT_OWNER" --region "$AWS_REGION" --duration-seconds 0 --query authorizationToken --output text)"
+          host="$CODEARTIFACT_DOMAIN-$CODEARTIFACT_OWNER.d.codeartifact.$AWS_REGION.amazonaws.com"
+          npmrc="$(mktemp)"
+          maven_settings="$(mktemp)"
+          trap 'rm -f "$npmrc" "$maven_settings"' EXIT
+
+          printf '%s\n' "registry=https://$host/npm/npm-internal/" "//$host/npm/npm-internal/:_authToken=$token" > "$npmrc"
+
+          sed "s|\${env.CODEARTIFACT_AUTH_TOKEN}|$token|" codeartifact-demo/maven-test/settings.xml > "$maven_settings"
+
+          DOCKER_BUILDKIT=1 docker build --secret id=npmrc,src="$npmrc" --tag codeartifact-npm-demo:"$BUILD_NUMBER" codeartifact-demo/npm-test
+          docker run --rm codeartifact-npm-demo:"$BUILD_NUMBER"
+
+          DOCKER_BUILDKIT=1 docker build --secret id=maven_settings,src="$maven_settings" --tag codeartifact-maven-demo:"$BUILD_NUMBER" codeartifact-demo/maven-test
+          docker run --rm codeartifact-maven-demo:"$BUILD_NUMBER"
+        '''
+      }
+    }
+  }
+}
+

@@ -1,0 +1,3 @@
+registry=https://tappayments-980136594430.d.codeartifact.us-east-1.amazonaws.com/npm/npm-internal/
+//tappayments-980136594430.d.codeartifact.us-east-1.amazonaws.com/npm/npm-internal/:_authToken=${CODEARTIFACT_AUTH_TOKEN}
+
