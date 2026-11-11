@@ -5,7 +5,8 @@ WORKDIR /app
 COPY package.json ./
 
 # The .npmrc is mounted only for dependency installation and is not retained in the image.
-RUN --mount=type=secret,id=npmrc,target=/root/.npmrc npm install --no-progress
+# --loglevel=http shows the CodeArtifact registry URLs in the Jenkins console.
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc npm install --no-progress --loglevel=http
 
 COPY index.js ./
 CMD ["npm", "test"]
