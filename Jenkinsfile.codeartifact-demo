@@ -28,7 +28,7 @@ pipeline {
 
           printf '%s\n' "registry=https://$host/npm/npm-internal/" "//$host/npm/npm-internal/:_authToken=$token" > "$npmrc"
 
-          sed "s|\${env.CODEARTIFACT_AUTH_TOKEN}|$token|" codeartifact-demo/maven-test/settings.xml > "$maven_settings"
+          sed 's|${env.CODEARTIFACT_AUTH_TOKEN}|'"$token"'|' codeartifact-demo/maven-test/settings.xml > "$maven_settings"
 
           DOCKER_BUILDKIT=1 docker build --secret id=npmrc,src="$npmrc" --tag codeartifact-npm-demo:"$BUILD_NUMBER" codeartifact-demo/npm-test
           docker run --rm codeartifact-npm-demo:"$BUILD_NUMBER"
