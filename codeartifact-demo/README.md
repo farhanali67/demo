@@ -14,6 +14,33 @@ Application / Docker build
 
 CodeArtifact is the controlled, AWS-hosted proxy and cache for public packages. GitHub Packages remains the private package registry. This preserves the existing private-package workflow and gives builds one audited source for public dependencies.
 
+## Architecture diagram
+
+```mermaid
+flowchart LR
+  DEV[Developers<br/>AWS SSO profile: dev]
+  JENKINS[Jenkins on AWS<br/>EC2 instance role: JenkinsRoleV2]
+  GH[GitHub Packages<br/>Private packages]
+  SOURCE[GitHub source repository]
+  NPMI[npm-internal<br/>Application endpoint]
+  NPMS[npm-store<br/>External connection: npmjs]
+  MVI[maven-internal<br/>Application endpoint]
+  MVS[maven-store<br/>External connection: Maven Central]
+  NPMJS[(npmjs)]
+  CENTRAL[(Maven Central)]
+
+  DEV -->|public npm dependencies| NPMI
+  DEV -->|private packages| GH
+  JENKINS -->|checkout| SOURCE
+  JENKINS -->|public npm dependencies| NPMI
+  JENKINS -->|public Maven dependencies| MVI
+  JENKINS -->|private packages| GH
+  NPMI --> NPMS --> NPMJS
+  MVI --> MVS --> CENTRAL
+```
+
+The editable diagram source is [architecture.mmd](architecture.mmd). Import it into the diagrams.net/draw.io macro in Confluence, or export it as an image and upload it to the page.
+
 ## Executive summary (manager)
 
 | Item | Decision |
@@ -312,6 +339,14 @@ CodeArtifact → tappayments → maven-store → Packages
 - Keep Jenkins read-only. Use a separate role for publishing.
 - Keep GitHub Packages credentials separate from AWS credentials.
 - Enable CloudTrail auditing for CodeArtifact and IAM activity.
+
+## Publishing this runbook to Confluence
+
+1. Create a page named **AWS CodeArtifact — Package Proxy and Jenkins Integration**.
+2. Insert the architecture diagram at the top using the Confluence diagrams.net/draw.io macro and import [`architecture.mmd`](architecture.mmd). If that macro is unavailable, export the diagram as PNG/SVG from diagrams.net and upload it.
+3. Copy this document from **Executive summary** through **Security rules** into the page. The headings work as a Confluence page hierarchy, and the IAM policy must remain in a code block.
+4. Restrict edit access to Platform/SysOps owners; grant view access to engineering and managers.
+5. Link the Confluence page back to this repository so commands, policies, and the diagram source remain version-controlled.
 
 ## References
 

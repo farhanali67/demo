@@ -1,0 +1,20 @@
+flowchart LR
+  DEV[Developers<br/>AWS SSO profile: dev]
+  JENKINS[Jenkins on AWS<br/>EC2 instance role: JenkinsRoleV2]
+  GH[GitHub Packages<br/>Private packages]
+  SOURCE[GitHub source repository]
+  NPMI[npm-internal<br/>Application endpoint]
+  NPMS[npm-store<br/>External connection: npmjs]
+  MVI[maven-internal<br/>Application endpoint]
+  MVS[maven-store<br/>External connection: Maven Central]
+  NPMJS[(npmjs)]
+  CENTRAL[(Maven Central)]
+
+  DEV -->|public npm dependencies| NPMI
+  DEV -->|private packages| GH
+  JENKINS -->|checkout| SOURCE
+  JENKINS -->|public npm dependencies| NPMI
+  JENKINS -->|public Maven dependencies| MVI
+  JENKINS -->|private packages| GH
+  NPMI --> NPMS --> NPMJS
+  MVI --> MVS --> CENTRAL
